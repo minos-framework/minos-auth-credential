@@ -1,3 +1,9 @@
 rest:
     host: localhost
     port: 5568
+database:
+    dbname: credential_db
+    user: minos
+    password: min0s
+    host: localhost
+    port: 5432

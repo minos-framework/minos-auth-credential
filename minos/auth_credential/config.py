@@ -20,15 +20,26 @@ from .exceptions import (
 )
 
 REST = collections.namedtuple("Rest", "host port")
+DATABASE = collections.namedtuple("Database", "dbname user password host port")
 
 _ENVIRONMENT_MAPPER = {
     "rest.host": "AUTH_CREDENTIAL_REST_HOST",
     "rest.port": "AUTH_CREDENTIAL_REST_PORT",
+    "database.dbname": "AUTH_CREDENTIAL_DATABASE_NAME",
+    "database.user": "AUTH_CREDENTIAL_DATABASE_USER",
+    "database.password": "AUTH_CREDENTIAL_DATABASE_PASSWORD",
+    "database.host": "AUTH_CREDENTIAL_DATABASE_HOST",
+    "database.port": "AUTH_CREDENTIAL_DATABASE_PORT",
 }
 
 _PARAMETERIZED_MAPPER = {
     "rest.host": "auth_credential_rest_host",
     "rest.port": "auth_credential_rest_port",
+    "database.database": "auth_credential_database_name",
+    "database.user": "auth_credential_database_user",
+    "database.password": "auth_credential_database_password",
+    "database.host": "auth_credential_database_host",
+    "database.port": "auth_credential_database_port",
 }
 
 
@@ -86,3 +97,13 @@ class CredentialConfig(abc.ABC):
         :return: A ``REST`` NamedTuple instance.
         """
         return REST(host=self._get("rest.host"), port=int(self._get("rest.port")))
+
+    @property
+    def database(self) -> DATABASE:
+        """Get the rest config.
+
+        :return: A ``REST`` NamedTuple instance.
+        """
+        return DATABASE(dbname=self._get("database.dbname"), user=self._get("database.user"),
+                        password=self._get("database.password"), host=self._get("database.host"),
+                        port=int(self._get("database.port")))
