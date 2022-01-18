@@ -6,10 +6,15 @@ from aiohttp import (
 from aiomisc.service.aiohttp import (
     AIOHTTPService,
 )
-import asyncio
-import aiopg
+from sqlalchemy import (
+    create_engine,
+)
+
 from .config import (
     CredentialConfig,
+)
+from .database.models import (
+    Base,
 )
 from .handler import (
     add_credentials,
@@ -22,45 +27,30 @@ logger = logging.getLogger(__name__)
 class AuthRestService(AIOHTTPService):
     def __init__(self, address: str, port: int, config: CredentialConfig):
         self.config = config
+        self.engine = None
         super().__init__(address, port)
 
     async def create_application(self) -> web.Application:
         app = web.Application()
 
         app["config"] = self.config
-        app["postgres_pool"] = await self.create_pool()
-        await self.initialize_database(app["postgres_pool"])
+        self.engine = await self.create_engine()
+        await self.create_database()
+
+        app["db_engine"] = self.engine
 
         app.router.add_route("POST", "/credentials", add_credentials)
         app.router.add_route("POST", "/credentials/validate", validate_credentials)
 
         return app
 
-    async def create_pool(self):
-        dsn = f"dbname={self.config.database.dbname} user={self.config.database.user} " \
-              f"password={self.config.database.password} host={self.config.database.host} " \
-              f"port={self.config.database.port}"
+    async def create_engine(self):
+        DATABASE_URI = (
+            f"postgresql+psycopg2://{self.config.database.user}:{self.config.database.password}@"
+            f"{self.config.database.host}:{self.config.database.port}/{self.config.database.dbname}"
+        )
 
-        return await aiopg.create_pool(dsn)
+        return create_engine(DATABASE_URI)
 
-    async def initialize_database(self, postgres_pool):
-        async with postgres_pool.acquire() as conn:
-            async with conn.cursor() as cur:
-                await cur.execute(_CREATE_UUID_EXTENSION)
-                await cur.execute(_CREATE_TABLE_QUERY)
-
-
-_CREATE_UUID_EXTENSION = """
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-""".strip()
-
-_CREATE_TABLE_QUERY = """
-CREATE TABLE IF NOT EXISTS credentials (
-    uuid UUID NOT NULL,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL,
-    updated_at TIMESTAMPTZ NOT NULL,
-    PRIMARY KEY (uuid, username)
-);
-""".strip()
+    async def create_database(self):
+        Base.metadata.create_all(self.engine)

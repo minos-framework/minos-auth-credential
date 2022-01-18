@@ -1,15 +1,13 @@
 __author__ = """Clariteia Devs"""
-__email__ = 'devs@clariteia.com'
-__version__ = '0.0.1'
+__email__ = "devs@clariteia.com"
+__version__ = "0.0.1"
 
 from .config import (
     CredentialConfig,
 )
-
 from .exceptions import (
-    CredentialConfigException
+    CredentialConfigException,
 )
-
 from .launchers import (
     EntrypointLauncher,
 )

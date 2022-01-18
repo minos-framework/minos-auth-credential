@@ -104,6 +104,10 @@ class CredentialConfig(abc.ABC):
 
         :return: A ``REST`` NamedTuple instance.
         """
-        return DATABASE(dbname=self._get("database.dbname"), user=self._get("database.user"),
-                        password=self._get("database.password"), host=self._get("database.host"),
-                        port=int(self._get("database.port")))
+        return DATABASE(
+            dbname=self._get("database.dbname"),
+            user=self._get("database.user"),
+            password=self._get("database.password"),
+            host=self._get("database.host"),
+            port=int(self._get("database.port")),
+        )

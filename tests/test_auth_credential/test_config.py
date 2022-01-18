@@ -39,7 +39,7 @@ class TestApiGatewayConfig(unittest.TestCase):
         config = CredentialConfig(path=self.config_file_path)
         database = config.database
 
-        self.assertEqual("credential_db", database.database)
+        self.assertEqual("credential_db", database.dbname)
         self.assertEqual("minos", database.user)
         self.assertEqual("min0s", database.password)
         self.assertEqual("localhost", database.host)

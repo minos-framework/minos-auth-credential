@@ -1,24 +1,19 @@
+import base64
 import logging
-from typing import (
-    Any,
-    Optional,
-)
-from datetime import datetime
-from uuid import (
-    uuid4,
+from datetime import (
+    datetime,
 )
 from aiohttp import (
-    ClientConnectorError,
-    ClientResponse,
-    ClientSession,
     web,
 )
-from yarl import (
-    URL,
+from sqlalchemy.orm import (
+    sessionmaker,
 )
-
-from .exceptions import (
-    NoTokenException,
+from .cryptography.cryptography import (
+    AuthCrypto,
+)
+from .database.models import (
+    Credential,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,19 +29,56 @@ async def add_credentials(request: web.Request) -> web.Response:
     except Exception:
         return web.HTTPBadRequest(text="Wrong data. Provide username and password.")
 
-    async with request.app["postgres_pool"].acquire() as conn:
-        async with conn.cursor() as cur:
-            now = datetime.now()
-            await cur.execute(
-                "INSERT INTO CREDENTIALS(uuid, username, password, created_at, updated_at) VALUES (%s, %s, %s, %s, %s)",
-                (uuid4(), content['username'], content['password'], now, now))
+    Session = sessionmaker(bind=request.app["db_engine"])
 
+    s = Session()
+
+    now = datetime.now()
+    credential = Credential(
+        username=content["username"],
+        password=AuthCrypto().encrypt_password(content["password"]),
+        created_at=now,
+        updated_at=now,
+    )
+
+    s.add(credential)
+    s.commit()
+
+    s.close()
     return web.json_response({})
 
 
 async def validate_credentials(request: web.Request) -> web.Response:
     """ Handle Credentials endpoints """
 
-    verb = request.method
+    user, password = await _decode_authorization_header(request)
 
-    return web.json_response({})
+    Session = sessionmaker(bind=request.app["db_engine"])
+
+    s = Session()
+
+    r = s.query(Credential).filter(Credential.username == user).first()
+    s.close()
+
+    if AuthCrypto().check_encrypted_password(password, r.password):
+        return web.json_response()
+
+    return web.json_response(status=400, text="User/password not valid")
+
+
+async def _decode_authorization_header(request: web.Request):
+    auth_token = await _get_authorization_header(request)
+    bytes = base64.b64decode(auth_token)
+    decoded = bytes.decode("utf-8")
+
+    user, password = decoded.split(":")
+
+    return user, password
+
+
+async def _get_authorization_header(request: web.Request):
+    headers = request.headers
+    if "Authorization" in headers and "Basic" in headers["Authorization"]:
+        parts = headers["Authorization"].split()
+        if len(parts) == 2:
+            return parts[1]
