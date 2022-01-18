@@ -55,7 +55,7 @@ async def add_credentials(request: web.Request) -> web.Response:
         return web.json_response(status=500, text="Username is already taken.")
 
     s.close()
-    return web.json_response(str(uuid))
+    return web.json_response({"credential": str(uuid)})
 
 
 async def validate_credentials(request: web.Request) -> web.Response:
