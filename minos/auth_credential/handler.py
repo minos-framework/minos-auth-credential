@@ -29,10 +29,10 @@ async def add_credentials(request: web.Request) -> web.Response:
     try:
         content = await request.json()
 
-        if "username" not in content or "password" not in content:
-            return web.HTTPBadRequest(text="Wrong data. Provide username and password.")
+        if "user_uuid" not in content or "username" not in content or "password" not in content:
+            return web.HTTPBadRequest(text="Wrong data. Provide user_uuid, username and password.")
     except Exception:
-        return web.HTTPBadRequest(text="Wrong data. Provide username and password.")
+        return web.HTTPBadRequest(text="Wrong data. Provide user_uuid, username and password.")
 
     Session = sessionmaker(bind=request.app["db_engine"])
 
@@ -42,6 +42,7 @@ async def add_credentials(request: web.Request) -> web.Response:
     uuid = uuid4()
     credential = Credential(
         uuid=uuid,
+        user_uuid=content["user_uuid"],
         username=content["username"],
         password=AuthCrypto().encrypt_password(content["password"]),
         created_at=now,
@@ -71,7 +72,7 @@ async def validate_credentials(request: web.Request) -> web.Response:
     s.close()
 
     if AuthCrypto().check_encrypted_password(password, r.password):
-        return web.json_response()
+        return web.json_response({"credential_uuid": str(r.uuid)})
 
     return web.json_response(status=400, text="User/password not valid")
 
