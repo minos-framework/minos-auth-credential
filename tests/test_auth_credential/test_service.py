@@ -52,15 +52,15 @@ class TestCredentialRestService(AioHTTPTestCase):
             "POST", url, data=json.dumps({"username": "test_user_1", "password": "HelloTestUser"})
         )
 
-        self.assertEqual(500, response.status)
-        self.assertEqual("Username is already taken.", await response.text())
+        self.assertEqual(400, response.status)
+        self.assertDictEqual({"error": "Username is already taken."}, json.loads(await response.text()))
 
     async def test_create_credential_uncomplete_parameters(self):
         url = "/credentials"
         response = await self.client.request("POST", url)
 
         self.assertEqual(400, response.status)
-        self.assertEqual("Wrong data. Provide username and password.", await response.text())
+        self.assertDictEqual({"error": "Wrong data. Provide username and password."}, json.loads(await response.text()))
 
     async def test_validate_credential(self):
         url = "/credentials/validate"
