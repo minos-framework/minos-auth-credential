@@ -24,7 +24,7 @@ from .handler import (
 logger = logging.getLogger(__name__)
 
 
-class AuthRestService(AIOHTTPService):
+class CredentialRestService(AIOHTTPService):
     def __init__(self, address: str, port: int, config: CredentialConfig):
         self.config = config
         self.engine = None

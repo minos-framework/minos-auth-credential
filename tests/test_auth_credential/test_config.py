@@ -35,6 +35,11 @@ class TestApiGatewayConfig(unittest.TestCase):
         self.assertEqual("localhost", rest.host)
         self.assertEqual(5568, rest.port)
 
+    def test_overwrite_with_parameter_rest_host(self):
+        config = CredentialConfig(path=self.config_file_path, auth_credential_rest_host="::1")
+        rest = config.rest
+        self.assertEqual("::1", rest.host)
+
     def test_config_database(self):
         config = CredentialConfig(path=self.config_file_path)
         database = config.database

@@ -75,7 +75,7 @@ class CredentialConfig(abc.ABC):
             return self._parameterized[_PARAMETERIZED_MAPPER[key]]
 
         if self._with_environment and key in _ENVIRONMENT_MAPPER and _ENVIRONMENT_MAPPER[key] in os.environ:
-            if os.environ[_ENVIRONMENT_MAPPER[key]] in ["true", "True", "false", "False"]:
+            if os.environ[_ENVIRONMENT_MAPPER[key]] in ["true", "True", "false", "False"]:  # pragma: no cover
                 return bool(util.strtobool(os.environ[_ENVIRONMENT_MAPPER[key]]))
             return os.environ[_ENVIRONMENT_MAPPER[key]]
 

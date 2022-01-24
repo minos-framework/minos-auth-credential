@@ -3,17 +3,20 @@ import logging
 from datetime import (
     datetime,
 )
-from uuid import uuid4
+from uuid import (
+    uuid4,
+)
 
 from aiohttp import (
     web,
 )
-from sqlalchemy.orm import (
-    sessionmaker,
-)
 from sqlalchemy import (
     exc,
 )
+from sqlalchemy.orm import (
+    sessionmaker,
+)
+
 from .cryptography.cryptography import (
     AuthCrypto,
 )
@@ -29,10 +32,10 @@ async def add_credentials(request: web.Request) -> web.Response:
     try:
         content = await request.json()
 
-        if "user_uuid" not in content or "username" not in content or "password" not in content:
-            return web.HTTPBadRequest(text="Wrong data. Provide user_uuid, username and password.")
+        if "username" not in content or "password" not in content:
+            return web.HTTPBadRequest(text="Wrong data. Provide username and password.")
     except Exception:
-        return web.HTTPBadRequest(text="Wrong data. Provide user_uuid, username and password.")
+        return web.HTTPBadRequest(text="Wrong data. Provide username and password.")
 
     Session = sessionmaker(bind=request.app["db_engine"])
 
@@ -42,7 +45,6 @@ async def add_credentials(request: web.Request) -> web.Response:
     uuid = uuid4()
     credential = Credential(
         uuid=uuid,
-        user_uuid=content["user_uuid"],
         username=content["username"],
         password=AuthCrypto().encrypt_password(content["password"]),
         created_at=now,
@@ -56,7 +58,7 @@ async def add_credentials(request: web.Request) -> web.Response:
         return web.json_response(status=500, text="Username is already taken.")
 
     s.close()
-    return web.json_response({"credential": str(uuid)})
+    return web.json_response({"credential_uuid": str(uuid)})
 
 
 async def validate_credentials(request: web.Request) -> web.Response:

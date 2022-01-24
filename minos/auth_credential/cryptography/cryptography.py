@@ -10,7 +10,7 @@ class AuthCrypto:
         )
 
     def encrypt_password(self, password):
-        return self.pwd_context.encrypt(password)
+        return self.pwd_context.hash(password)
 
     def check_encrypted_password(self, password, hashed):
         return self.pwd_context.verify(password, hashed)
