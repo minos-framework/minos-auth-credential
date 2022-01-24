@@ -47,7 +47,6 @@ class TestApiGatewayConfig(unittest.TestCase):
         self.assertEqual("credential_db", database.dbname)
         self.assertEqual("minos", database.user)
         self.assertEqual("min0s", database.password)
-        self.assertEqual("localhost", database.host)
         self.assertEqual(5432, database.port)
 
     @mock.patch.dict(os.environ, {"AUTH_CREDENTIAL_REST_HOST": "::1"})
